@@ -12,9 +12,7 @@
           {{ deviceStatus.error.message }}
         </div>
         <div>
-          <router-link to="/">
-            목록으로 돌아가기
-          </router-link>
+          <button class="nue-rect" @click="reload">다시시작</button>
         </div>
       </div>
     </template>
@@ -73,11 +71,14 @@ export default defineComponent({
       value:[],
       opened:false,
       error:null
-    })
+    }) as {
+      value:any[],
+      opened:boolean,
+      error:Error|null
+    }
 
     onBeforeMount(()=>{
       const severEvents = new EventSource(`api/connections/sse`);
-      console.log("severEvents", severEvents)
       
       severEvents.onopen = (event)=>{
         deviceStatus.opened = true;
@@ -90,13 +91,17 @@ export default defineComponent({
         }
       }
 
-      severEvents.onerror = (error)=>{
-        deviceStatus.error = error as any
+      severEvents.onerror = ()=>{
+        const error = new Error("Perhaps the host server has been shut down.");
+        deviceStatus.error = error
       }      
     })
 
     return {
-      deviceStatus
+      deviceStatus,
+      reload (){
+        location.reload()
+      }
     }
   }
 });
