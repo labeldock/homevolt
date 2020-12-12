@@ -1,10 +1,13 @@
 {
   "name": "homevolt",
-  "version": "0.1.0",
+  "version": "0.0.0-alpha.1",
   "description": "LAN Base Home Device Manager",
   "private": true,
   "main": "index",
   "scripts": {
+    "install:host": "cd packages/hostvolt && yarn install",
+    "install:peer": "cd packages/peervolt && yarn install",
+    "postinstall": "yarn install:host && yarn install:peer",
     "test": "See `npm help init` for definitive documentation on these fields"
   },
   "repository": {
@@ -16,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/labeldock/homevolt/issues"
   },
-  "homepage": "https://github.com/labeldock/homevolt#readme"
+  "homepage": "https://github.com/labeldock/homevolt#readme",
+  "devDependencies": {
+    "yarn": "^1.22.10"
+  }
 }
