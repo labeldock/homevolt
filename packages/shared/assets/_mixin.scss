@@ -1,0 +1,35 @@
+@import './remark';
+
+@mixin neu-base-style {
+  border:1px solid #eaeaea;
+  box-shadow: 4px 4px 8px #cdd0d4, -4px -4px 8px white;
+}
+
+@mixin neu-base-style {
+  border:1px solid #eaeaea;
+  box-shadow: 4px 4px 8px #cdd0d4, -4px -4px 8px white;
+}
+
+@mixin neu-rect-style {
+  border:1px solid #eaeaea;
+  box-shadow: 4px 4px 8px #cdd0d4, -4px -4px 8px white;
+  border-radius:8px;
+}
+
+@mixin neu-circle-style {
+  border:1px solid #eaeaea;
+  box-shadow: 4px 4px 8px #cdd0d4, -4px -4px 8px white;
+  border-radius:50%;
+}
+
+@mixin nue-button-state {
+  &:focus {
+    outline: 2px dotted rgba(0, 0, 0, .1); 
+  }
+  &:active {
+    box-shadow: inset 4px 4px 8px #cdd0d4, inset -4px -4px 8px white;
+  }
+  &[disabled] {
+    box-shadow: 2px 2px 8px #cdd0d4, -2px -2px 4px white;
+  }
+}

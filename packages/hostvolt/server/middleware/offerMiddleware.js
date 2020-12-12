@@ -1,0 +1,187 @@
+const Router = require("express");
+const { RTCPeerConnection } = require("wrtc");
+
+const dgram = require("dgram");
+const eventHelper = require("../../../shared/eventHelper");
+const {
+  encode64,
+  decode64,
+  deferralReference,
+  parseMessagePayload,
+  removeValue
+} = require("../../../shared/functions");
+const udpServer = dgram.createSocket("udp4");
+
+const ticketBox = eventHelper();
+
+let connectorsOrder = 0;
+const connectors = [];
+
+module.exports = serverState => {
+  const router = Router();
+
+  const { UDP_PORT, UUID } = serverState;
+
+  udpServer.on("error", err => {
+    console.log(`udpServer error:\n${err.stack}`);
+    udpServer.close();
+  });
+
+  udpServer.on("listening", () => {
+    const address = udpServer.address();
+    console.log(`udpServer listening ${address.address}:${address.port}`);
+  });
+
+  udpServer.on("message", async (msg, rinfo) => {
+    const { action, ...data } = parseMessagePayload(msg);
+    console.log(
+      `udpServer got: ${action} ${(msg + "").length}[${Object.keys(
+        data
+      )}] from ${rinfo.address}:${rinfo.port}`
+    );
+    if (action === "BROWSERTCHOST") {
+      udpServer.send(
+        JSON.stringify({
+          action: "HOSTINFO",
+          uuid: UUID
+        }),
+        rinfo.port,
+        rinfo.address
+      );
+    }
+
+    if (action === "REQUESTTICKET" && data.server === UUID) {
+      const deferralOffer = deferralReference(null);
+      const deferralIceCandidates = deferralReference([]).use(({ finish }) => {
+        setTimeout(finish, 2500);
+      });
+
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.stunprotocol.org" }],
+        optional: [
+          {
+            RtpDataChannels: true
+          }
+        ]
+      });
+
+      pc.onnegotiationneeded = () => {
+        pc.createOffer().then(offer => {
+          pc.setLocalDescription(offer);
+          deferralOffer.finish(() => offer);
+        });
+      };
+
+      pc.onicecandidate = function(event) {
+        if (event.candidate !== null) {
+          deferralIceCandidates.value.push(event.candidate);
+        } else {
+          deferralIceCandidates.finish();
+        }
+      };
+
+      pc.oniceconnectionstatechange = function() {
+        if (pc.iceConnectionState == "disconnected") {
+          onDisconnectPeerConnection();
+        }
+      };
+
+      const broadcaster = Object.defineProperties(
+        {
+          type: "monitor",
+          order: null,
+          connected_at: null
+        },
+        {
+          send: {
+            enumerable: false,
+            configurable: false,
+            value: data => {
+              dc.send(data);
+            }
+          }
+        }
+      );
+
+      function onDisconnectPeerConnection() {
+        dc.close();
+        pc.close();
+        removeValue(connectors, broadcaster);
+        broadcastStatusToAllMonitor();
+      }
+
+      const dc = pc.createDataChannel("raspi-iot-data", { reliable: false });
+
+      dc.onopen = function() {
+        broadcaster.order = connectorsOrder++;
+        broadcaster.connected_at = Date.now();
+        connectors.push(broadcaster);
+        broadcastStatusToAllMonitor();
+      };
+
+      dc.onmessage = function({ data: msg }) {
+        const { action, ...data } = parseMessagePayload(msg);
+        if (action === "disconnect") {
+          onDisconnectPeerConnection();
+        }
+      };
+
+      const ticket = ticketBox.ticket(function({ answer, candidates }) {
+        const answerData = JSON.parse(decode64(answer));
+        const candidatesData = JSON.parse(decode64(candidates));
+        candidatesData.forEach(candidate => {
+          pc.addIceCandidate(candidate);
+        });
+        pc.setRemoteDescription(answerData);
+      });
+
+      await Promise.all([
+        deferralOffer.promise,
+        deferralIceCandidates.promise
+      ]).then(function([resultOfOffer, resultOfCandidates]) {
+        const offer = encode64(JSON.stringify(resultOfOffer));
+        const candidates = encode64(JSON.stringify(resultOfCandidates));
+        udpServer.send(
+          JSON.stringify({
+            action: "PUBLISHEDTICKET",
+            ticket,
+            offer,
+            candidates
+          }),
+          rinfo.port,
+          rinfo.address
+        );
+      });
+    }
+
+    if (action === "ANSWER") {
+      ticketBox.emit(data.ticket, data);
+    }
+
+    function getIotStatus(override) {
+      return JSON.stringify(
+        Object(
+          {
+            action: "iotStatus",
+            devices: [...connectors]
+          },
+          override
+        )
+      );
+    }
+
+    let prevStatus = null;
+    function broadcastStatusToAllMonitor() {
+      const iotStatus = getIotStatus();
+      if (prevStatus !== iotStatus) {
+        prevStatus = iotStatus;
+        connectors.forEach(broadcaster => {
+          broadcaster.send(iotStatus);
+        });
+      }
+    }
+  });
+
+  udpServer.bind({ port: UDP_PORT, exclusive: false });
+  return router;
+};

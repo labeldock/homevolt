@@ -1,0 +1,20 @@
+{
+  "name": "homevolt",
+  "version": "0.1.0",
+  "description": "LAN Base Home Device Manager",
+  "private": true,
+  "main": "index",
+  "scripts": {
+    "test": "See `npm help init` for definitive documentation on these fields"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/labeldock/homevolt.git"
+  },
+  "author": "AHN HO JUNG",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/labeldock/homevolt/issues"
+  },
+  "homepage": "https://github.com/labeldock/homevolt#readme"
+}
