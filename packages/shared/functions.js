@@ -223,6 +223,9 @@ function deferralReference (value){
 }
 
 function parseMessagePayload (msg){
+  if(typeof msg === "object" && msg !== null){
+    return msg;
+  }
   try {
     return JSON.parse(msg)
   } catch(error){

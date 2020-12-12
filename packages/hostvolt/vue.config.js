@@ -9,6 +9,7 @@ module.exports = {
   },
   devServer: {
     port: 8090,
+    transportMode: 'ws',
     before: middleware
   }
 };

@@ -1,21 +1,24 @@
 const Router = require("express");
+const eventHelper = require("shared/eventHelper");
+//rtc
 const { RTCPeerConnection } = require("wrtc");
-
+//udp
 const dgram = require("dgram");
-const eventHelper = require("../../../shared/eventHelper");
+const udpServer = dgram.createSocket("udp4");
+const ticketBox = eventHelper();
+let connectorsOrder = 0;
+const connectors = [];
+//sse
+const SSE = require('express-sse')
+const sse = new SSE([JSON.stringify({ action:"iotStatus", devices:[] })]);
+
 const {
   encode64,
   decode64,
   deferralReference,
   parseMessagePayload,
   removeValue
-} = require("../../../shared/functions");
-const udpServer = dgram.createSocket("udp4");
-
-const ticketBox = eventHelper();
-
-let connectorsOrder = 0;
-const connectors = [];
+} = require("shared/functions");
 
 module.exports = serverState => {
   const router = Router();
@@ -171,17 +174,28 @@ module.exports = serverState => {
     }
 
     let prevStatus = null;
+
     function broadcastStatusToAllMonitor() {
       const iotStatus = getIotStatus();
       if (prevStatus !== iotStatus) {
         prevStatus = iotStatus;
+        //client rtc
         connectors.forEach(broadcaster => {
           broadcaster.send(iotStatus);
         });
+        //host sse
+        sse.updateInit(iotStatus)
+        sse.send(iotStatus)
       }
     }
   });
 
   udpServer.bind({ port: UDP_PORT, exclusive: false });
+
+  router.get("/api/connections/sse", (...args)=>{
+    console.log("connected");
+    sse.init(...args);
+  })
+
   return router;
 };

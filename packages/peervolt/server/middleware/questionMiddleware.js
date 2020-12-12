@@ -1,8 +1,8 @@
 const Router = require("express");
 
 const dgram = require("dgram");
-const eventHelper = require("../../../shared/eventHelper");
-const { generateUUID, deferralReference, parseMessagePayload } = require("../../../shared/functions");
+const eventHelper = require("shared/eventHelper");
+const { generateUUID, deferralReference, parseMessagePayload } = require("shared/functions");
 const udpServer = dgram.createSocket("udp4");
 
 const udpEvent = eventHelper();

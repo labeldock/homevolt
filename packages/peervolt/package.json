@@ -8,6 +8,8 @@
     "server": "node server",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
+    "postadd": "npm link ../shared",
+    "postremove": "npm link ../shared",
     "postinstall": "npm link ../shared"
   },
   "dependencies": {

@@ -145,8 +145,6 @@ export default defineComponent({
           host.hostinfoLoaded = true;
           const { ticket, offer, candidates } = data;
 
-          console.log("data", data);
-
           const hostOffer = JSON.parse(atob(offer));
           const hostCandidateList = JSON.parse(atob(candidates));
           const answerIceCandidates: any[] = [];

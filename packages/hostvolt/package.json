@@ -8,10 +8,14 @@
     "server": "node server",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
+    "postadd": "npm link ../shared",
+    "postremove": "npm link ../shared",
     "postinstall": "npm link ../shared"
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "express-sse": "^0.5.3",
+    "remixicon": "^2.5.0",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0"
   },
