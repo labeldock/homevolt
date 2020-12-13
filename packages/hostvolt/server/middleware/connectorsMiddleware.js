@@ -7,10 +7,6 @@ const dgram = require("dgram");
 const udpServer = dgram.createSocket("udp4");
 const ticketBox = eventHelper();
 let connectorsOrder = 0;
-const connectors = [];
-//sse
-const SSE = require('express-sse')
-const sse = new SSE([JSON.stringify({ action:"iotStatus", devices:[] })]);
 
 const {
   encode64,
@@ -22,9 +18,9 @@ const {
 
 module.exports = serverState => {
   const router = Router();
-
   const { UDP_PORT, UUID } = serverState;
-
+  const connectors = [];
+  
   udpServer.on("error", err => {
     console.log(`udpServer error:\n${err.stack}`);
     udpServer.close();
@@ -110,7 +106,7 @@ module.exports = serverState => {
         dc.close();
         pc.close();
         removeValue(connectors, broadcaster);
-        broadcastStatusToAllMonitor();
+        serverState.event.emit("shouldBroadcastAllMonitors");
       }
 
       const dc = pc.createDataChannel("raspi-iot-data", { reliable: false });
@@ -119,7 +115,7 @@ module.exports = serverState => {
         broadcaster.order = connectorsOrder++;
         broadcaster.connected_at = Date.now();
         connectors.push(broadcaster);
-        broadcastStatusToAllMonitor();
+        serverState.event.emit("shouldBroadcastAllMonitors");
       };
 
       dc.onmessage = function({ data: msg }) {
@@ -160,42 +156,25 @@ module.exports = serverState => {
     if (action === "ANSWER") {
       ticketBox.emit(data.ticket, data);
     }
-
-    function getIotStatus(override) {
-      return JSON.stringify(
-        Object(
-          {
-            action: "iotStatus",
-            devices: [...connectors]
-          },
-          override
-        )
-      );
-    }
-
-    let prevStatus = null;
-
-    function broadcastStatusToAllMonitor() {
-      const iotStatus = getIotStatus();
-      if (prevStatus !== iotStatus) {
-        prevStatus = iotStatus;
-        //client rtc
-        connectors.forEach(broadcaster => {
-          broadcaster.send(iotStatus);
-        });
-        //host sse
-        sse.updateInit(iotStatus)
-        sse.send(iotStatus)
-      }
-    }
   });
 
-  udpServer.bind({ port: UDP_PORT, exclusive: false });
 
-  router.get("/api/connections/sse", (...args)=>{
-    console.log("connected");
-    sse.init(...args);
+  // connectors
+  serverState.event.on("shouldPullDevicesStatus", ()=>{
+    return {
+      name:"connectors",
+      value:[...connectors]
+    }
   })
+
+  // rtc (to client)
+  serverState.event.on("shouldSentDeviceStatusContent", (iotStatus)=>{
+    connectors.forEach(broadcaster => {
+      broadcaster.send(iotStatus);
+    });
+  })
+  
+  udpServer.bind({ port: UDP_PORT, exclusive: false });
 
   return router;
 };

@@ -1,11 +1,13 @@
 const bodyParser = require("body-parser");
-const answerMiddleware = require("./offerMiddleware");
+const bridgeInterfaceMiddleware = require("./bridgeInterfaceMiddleware");
+const connectorsMiddleware = require("./connectorsMiddleware");
+const hostSentEventsMiddleware = require("./hostSentEventsMiddleware");
+//const zwaveMiddleware = require("./zwaveMiddleware");
 const { generateUUID } = require("shared/functions");
 
 module.exports = (app, serverState = {}) => {
   const API_PORT = 20100;
   const UDP_PORT = 20110;
-  const SOCKET_PORT = 20120;
   const UUID = generateUUID();
 
   Object.assign(serverState, {
@@ -15,6 +17,8 @@ module.exports = (app, serverState = {}) => {
   });
 
   app.use(bodyParser.json());
-  app.use(answerMiddleware(serverState));
-
+  app.use(bridgeInterfaceMiddleware(serverState));
+  app.use(connectorsMiddleware(serverState));
+  app.use(hostSentEventsMiddleware(serverState));
+  //app.use(zwaveMiddleware(serverState));
 };
