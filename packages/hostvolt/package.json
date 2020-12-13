@@ -15,6 +15,7 @@
   "dependencies": {
     "core-js": "^3.6.5",
     "express-sse": "^0.5.3",
+    "openzwave-shared": "^1.7.2",
     "remixicon": "^2.5.0",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0"

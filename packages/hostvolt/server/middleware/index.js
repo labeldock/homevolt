@@ -2,7 +2,7 @@ const bodyParser = require("body-parser");
 const bridgeInterfaceMiddleware = require("./bridgeInterfaceMiddleware");
 const connectorsMiddleware = require("./connectorsMiddleware");
 const hostSentEventsMiddleware = require("./hostSentEventsMiddleware");
-//const zwaveMiddleware = require("./zwaveMiddleware");
+const zwaveMiddleware = require("./zwaveMiddleware");
 const { generateUUID } = require("shared/functions");
 
 module.exports = (app, serverState = {}) => {
@@ -20,5 +20,5 @@ module.exports = (app, serverState = {}) => {
   app.use(bridgeInterfaceMiddleware(serverState));
   app.use(connectorsMiddleware(serverState));
   app.use(hostSentEventsMiddleware(serverState));
-  //app.use(zwaveMiddleware(serverState));
+  app.use(zwaveMiddleware(serverState));
 };
