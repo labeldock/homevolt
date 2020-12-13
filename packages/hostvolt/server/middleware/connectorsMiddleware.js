@@ -21,6 +21,14 @@ module.exports = serverState => {
   const { UDP_PORT, UUID } = serverState;
   const connectors = [];
   
+  serverState.event.on("shouldPullOperateStatus",async ()=>{
+    return {type:"UDP4(dgram)", status:"ok", ready:true }
+  });
+
+  serverState.event.on("shouldPullOperateStatus",async ()=>{
+    return {type:"NodeRTC", status:"ok", ready:true }
+  });
+
   udpServer.on("error", err => {
     console.log(`udpServer error:\n${err.stack}`);
     udpServer.close();
@@ -106,7 +114,7 @@ module.exports = serverState => {
         dc.close();
         pc.close();
         removeValue(connectors, broadcaster);
-        serverState.event.emit("shouldBroadcastAllMonitors");
+        serverState.event.emit("shouldBroadcastAllDevices");
       }
 
       const dc = pc.createDataChannel("raspi-iot-data", { reliable: false });
@@ -115,7 +123,7 @@ module.exports = serverState => {
         broadcaster.order = connectorsOrder++;
         broadcaster.connected_at = Date.now();
         connectors.push(broadcaster);
-        serverState.event.emit("shouldBroadcastAllMonitors");
+        serverState.event.emit("shouldBroadcastAllDevices");
       };
 
       dc.onmessage = function({ data: msg }) {
@@ -175,6 +183,8 @@ module.exports = serverState => {
   })
   
   udpServer.bind({ port: UDP_PORT, exclusive: false });
+
+  serverState.event.emit("shouldBroadcastAllOperators");
 
   return router;
 };
