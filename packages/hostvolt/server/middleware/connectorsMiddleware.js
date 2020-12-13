@@ -168,9 +168,9 @@ module.exports = serverState => {
   })
 
   // rtc (to client)
-  serverState.event.on("shouldSentDeviceStatusContent", (iotStatus)=>{
+  serverState.event.on("shouldSentDeviceStatusContent", (deviceStatus)=>{
     connectors.forEach(broadcaster => {
-      broadcaster.send(iotStatus);
+      broadcaster.send(deviceStatus);
     });
   })
   

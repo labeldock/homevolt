@@ -7490,7 +7490,7 @@ mz@^2.4.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-nan@^2.12.1:
+nan@>=2.14.0, nan@^2.12.1:
   version "2.14.2"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.2.tgz#f5376400695168f4cc694ac9393d0c9585eeea19"
   integrity sha512-M2ufzIiINKCuDfBSAUr1vWQ+vuVcA9kqx8JJUsbQi6yf1uGRyb7HfpdfUr5qLXf3B/t8dPvcjhKMmlfnP47EzQ==
@@ -7916,6 +7916,13 @@ opener@^1.5.1:
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/opener/-/opener-1.5.2.tgz#5d37e1f35077b9dcac4301372271afdeb2a13598"
   integrity sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A==
+
+openzwave-shared@^1.7.2:
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/openzwave-shared/-/openzwave-shared-1.7.2.tgz#1f11e56a15dfbe9e8574f98325adcdcdfd2da792"
+  integrity sha512-V5lOzNTXfxiVPg59dR3gEbQsEMRHvC4xv4jhmH6qulNjzHNsAz8aYAi7liihUwdRk8knVBo9ierX0WIZVCLjJg==
+  dependencies:
+    nan ">=2.14.0"
 
 opn@^5.5.0:
   version "5.5.0"

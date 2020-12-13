@@ -1,18 +1,23 @@
 const Router = require("express");
 const SSE = require('express-sse')
-const sse = new SSE([JSON.stringify({ action:"iotStatus", devices:[] })]);
+
+const serverSentDeviceStatus = new SSE([JSON.stringify({ action:"deviceStatus", devices:[] })]);
 
 module.exports = serverState => {
   const router = Router();
 
-  router.get("/api/connections/sse", (...args)=>{
-    sse.init(...args);
+  router.get("/api/operate/sse", (...args)=>{
+    serverSentDeviceStatus.init(...args);
   })
 
-  // sse (to host)
-  serverState.event.on("shouldSentDeviceStatusContent", (iotStatus)=>{
-    sse.updateInit(iotStatus)
-    sse.send(iotStatus)
+  router.get("/api/devices/sse", (...args)=>{
+    serverSentDeviceStatus.init(...args);
+  })
+
+  // serverSentDeviceStatus (to host)
+  serverState.event.on("shouldSentDeviceStatusContent", (deviceStatus)=>{
+    serverSentDeviceStatus.updateInit(deviceStatus)
+    serverSentDeviceStatus.send(deviceStatus)
   })
 
   return router

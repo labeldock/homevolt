@@ -186,7 +186,7 @@ export default defineComponent({
 
             dc.onmessage = function({ data: content }) {
               const { action, ...data } = parseMessagePayload(content);
-              if (action === "iotStatus") {
+              if (action === "deviceStatus") {
                 deviceStatus.value = data.devices;
               }
               console.log("dc onmessage", action, data);
@@ -208,7 +208,6 @@ export default defineComponent({
 
           // 세션 협상이 필요한 변경이 발생하면 트리거 됨
           pc.onnegotiationneeded = () => {
-            console.log("on nego");
             pc.createOffer().then(desc => {
               //console.log("createOffer desc", desc)
               pc.setLocalDescription(desc);

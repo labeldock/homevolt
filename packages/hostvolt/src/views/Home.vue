@@ -78,7 +78,7 @@ export default defineComponent({
     }
 
     onBeforeMount(()=>{
-      const severEvents = new EventSource(`api/connections/sse`);
+      const severEvents = new EventSource(`api/devices/sse`);
       
       severEvents.onopen = (event)=>{
         deviceStatus.opened = true;
@@ -86,7 +86,7 @@ export default defineComponent({
 
       severEvents.onmessage = ({ data: content })=>{
         const { action, ...data } = parseMessagePayload(parseMessagePayload(content))
-        if(action === "iotStatus"){
+        if(action === "deviceStatus"){
           deviceStatus.value = data.devices;
         }
       }

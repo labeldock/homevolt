@@ -22,7 +22,7 @@ module.exports = serverState => {
         })
       })
     })
-    const sendData = { action: "iotStatus", info, devices }
+    const sendData = { action: "deviceStatus", info, devices }
     const sendContent = JSON.stringify(sendData)
 
     if(prevStatus !== sendContent){
