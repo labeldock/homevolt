@@ -50,7 +50,6 @@ module.exports = serverState => {
 
   function sendHostStatus (){
     const hostStatus = readHostStatus()
-    console.log("hostStatus", hostStatus)
     serverSentHostStatus.updateInit(hostStatus)
     serverSentHostStatus.send(hostStatus)
   }
