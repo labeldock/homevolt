@@ -53,5 +53,7 @@ module.exports = serverState => {
 
   serverState.event.emit("shouldBroadcastAllOperators");
 
+  router.all((req, res, next)=>{ next(); })
+
   return router
 }

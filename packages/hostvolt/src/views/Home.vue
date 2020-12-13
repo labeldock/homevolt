@@ -91,6 +91,9 @@
             </div>
           </template>
           <template v-else>
+            <div>
+              {{ deviceStatus.info }}
+            </div>
             <table>
               <thead>
                 <tr>
@@ -137,10 +140,12 @@ export default defineComponent({
 
     const deviceStatus = reactive({
       value:[],
+      info:{},
       opened:false,
       error:null
     }) as {
       value:any[],
+      info:any,
       opened:boolean,
       error:Error|null
     }
@@ -156,8 +161,9 @@ export default defineComponent({
       devicesEvent.onmessage = ({ data: content })=>{
         const { action, ...data } = parseMessagePayload(parseMessagePayload(content))
         if(action === "hostStatus"){
-          operateStatus.value = data.operates;
+          operateStatus.value = data.operates
           deviceStatus.value = data.devices
+          deviceStatus.info  = data.info
         }
       }
 
