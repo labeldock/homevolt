@@ -26,6 +26,7 @@ import TextIcon from "shared/components/TextIcon.vue";
 import { generateUUID } from "shared/functions";
 import { useEffect } from "shared/hooks";
 import { BrowserIdSymbol, DeviceInfoSymbol } from "shared/symbol";
+import { getLocal, setLocal } from 'shared/storage'
 
 export default defineComponent({
   components: {
@@ -40,10 +41,22 @@ export default defineComponent({
     provide(DeviceInfoSymbol, deviceInfo);
 
     onBeforeMount(() => {
-      browserId.value = generateUUID();
+      const localBrowserId = (()=>{
+        const localUUID = getLocal("PEER_UUID");
+        if(localUUID){
+          return localUUID
+        }
+        const newUUID = generateUUID();
+        console.log("newUUID", newUUID)
+        setLocal("PEER_UUID", newUUID)
+        return newUUID
+      })()
+      
+      browserId.value = localBrowserId;
       deviceInfo.value = { ...new Detector(navigator.appVersion) };
       serviceReady.value = true;
     });
+
 
     function getFullscreenState() {
       return (
