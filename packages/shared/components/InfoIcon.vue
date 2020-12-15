@@ -1,13 +1,13 @@
 <template>
   <span :style="`font-size:${fontSize};fontColor:${color}`">
+    <template v-if="os">
+      <i v-if="os.type" :class="`ri-${os.type}-fill`" />
+      <small>{{ os.version }}</small>
+    </template>
     <template v-if="browser">
       <i v-if="browser.type" :class="`ri-${browser.type}-fill`" />
       <span v-else>{{browser.name}}</span>
       <small>{{ browser.version }}</small>
-    </template>
-    <template v-if="os">
-      <i v-if="os.type" :class="`ri-${os.type}-fill`" />
-      <small>{{ os.version }}</small>
     </template>
   </span>
 </template>
@@ -35,6 +35,8 @@ export default defineComponent({
           version:"0"
         };
 
+        console.log(browser.name)
+
         switch(props.browser.name){
           case "Chrome":
             browser.type = "chrome"
@@ -44,7 +46,7 @@ export default defineComponent({
             break;
         }
 
-        const majorVersionMatched = "87.0.4280.88".match(/^\d+/)
+        const majorVersionMatched = props.browser.version.match(/^\d+/)
         if(majorVersionMatched){
           browser.version = majorVersionMatched[0]
         } else {
@@ -71,10 +73,12 @@ export default defineComponent({
             os.type = "coreos"
             break;
           case "iOS":
+          case "macOS":
             os.type = "apple"
             break;
           case "Android":
             os.type = "android"
+            os.version = "Android"
             break;
         }
 
