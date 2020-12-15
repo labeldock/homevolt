@@ -70,8 +70,22 @@
             <div>
               <TextIcon type="radar" size="60px" />
             </div>
-            {{ device.type }}({{ device.order }})
+            <div>
+              <span v-if="device.handshake === false">
+                연결중
+              </span>
+              <span v-else-if="device.connected === false">
+                동기화중
+              </span>
+              <span v-else>
+                정상연결
+              </span>
+            </div>
+            {{ device.type }}({{ device.connection_id }})
             <div>연결시간 : {{ device.connected_at }}</div>
+            <!--
+              <div>{{ device.meta }}</div>
+            -->
           </header>
         </div>
       </div>
@@ -90,7 +104,7 @@ import {
 import router from "@/router";
 import axios from "axios";
 import TextIcon from "shared/components/TextIcon.vue";
-import { DeviceInfoSymbol } from "shared/symbol";
+import { BrowserIdSymbol, DeviceInfoSymbol } from "shared/symbol";
 const { parseMessagePayload } = require("shared/functions");
 
 export default defineComponent({
@@ -107,7 +121,8 @@ export default defineComponent({
       error: null
     });
 
-    const deviceInfo = inject(DeviceInfoSymbol);
+    const deviceInfo = inject(DeviceInfoSymbol) as any
+    const browserId = inject(BrowserIdSymbol) as any
     const deviceStatus = ref([]);
 
     const peerConnection = ref(null);
@@ -140,7 +155,7 @@ export default defineComponent({
     onBeforeMount(() => {
       const { host_id } = router.currentRoute.value.params;
       axios
-        .get(`/api/ticket/${host_id}`)
+        .post(`/api/ticket/${host_id}`, { browserId:browserId })
         .then(async ({ data }) => {
           host.hostinfoLoaded = true;
           const { ticket, offer, candidates } = data;
@@ -152,6 +167,7 @@ export default defineComponent({
           const pc = new RTCPeerConnection({
             iceServers: [{ urls: "stun:stun.stunprotocol.org" }]
           });
+
           peerConnection.value = pc as any;
 
           pc.onicecandidate = event => {
@@ -185,6 +201,7 @@ export default defineComponent({
             };
 
             dc.onmessage = function({ data: content }) {
+              console.log("onmessage", content)
               const { action, ...data } = parseMessagePayload(content);
               if (action === "deviceStatus") {
                 deviceStatus.value = data.devices;
@@ -215,11 +232,13 @@ export default defineComponent({
           };
 
           try {
+            const { os, browser, feature } = deviceInfo.value
             await axios.post(`/api/answer/${host_id}`, {
               deviceId: deviceInfo,
               ticket: ticket,
               answer: encodeAnswer,
-              candidates: encodeCandidates
+              candidates: encodeCandidates,
+              meta:{ os, browser, feature }
             });
             host.answered = true;
           } catch (error) {

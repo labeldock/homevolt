@@ -2,7 +2,7 @@ const Router = require("express");
 
 const dgram = require("dgram");
 const eventHelper = require("shared/eventHelper");
-const { generateUUID, deferralReference, parseMessagePayload } = require("shared/functions");
+const { deferralReference, parseMessagePayload } = require("shared/functions");
 const udpServer = dgram.createSocket("udp4");
 
 const udpEvent = eventHelper();
@@ -73,15 +73,16 @@ module.exports = serverState => {
     res.status(200).send(hostCache);
   });
 
-  router.get("/api/ticket/:uuid", async (req, res)=>{
+  router.post("/api/ticket/:uuid", async (req, res)=>{
     const { uuid } = req.params
-    
-    if(!uuid){
-      res.status(400)
-      res.send('400 Bad Request')
-      return
-    }
+    const { browserId } = req.body;
 
+    if (!uuid || !browserId) {
+      res.status(400);
+      res.send("400 Bad Request");
+      return;
+    }
+    
     const hostinfo = await (async ()=>{
       if(hostCache[uuid]){
         return hostCache[uuid]
@@ -97,7 +98,7 @@ module.exports = serverState => {
     }
 
     const { port, address } = hostinfo
-    const sender = generateUUID();
+    const sender = browserId;
     const server = uuid;
     const { promise:deferralUDPResponse } = deferralReference().use(({ onBeforeFullfill, resolve, reject })=>{  
       function handleReciveTicket (msg){
@@ -120,7 +121,7 @@ module.exports = serverState => {
       udpServer.send(JSON.stringify({
         action:"REQUESTTICKET",
         sender,
-        server
+        server,
       }), port, address)
     })
 
@@ -139,7 +140,7 @@ module.exports = serverState => {
 
   router.post("/api/answer/:uuid", (req, res) => {
     const { uuid } = req.params
-    const { ticket, answer, candidates } = req.body;
+    const { ticket, answer, candidates, meta = {} } = req.body;
 
     if (!uuid || !ticket || !answer || !candidates) {
       res.status(400);
@@ -148,7 +149,7 @@ module.exports = serverState => {
     }
     
     try {
-      udpServer.send(JSON.stringify({ action:"ANSWER", server:uuid, ticket, answer, candidates }), HOST_UDP_PORT)
+      udpServer.send(JSON.stringify({ action:"ANSWER", server:uuid, ticket, answer, candidates, meta }), HOST_UDP_PORT)
       res.status(200);
       res.send({ status:"sended" });
     } catch(error){

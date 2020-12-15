@@ -13,7 +13,8 @@ const {
   decode64,
   deferralReference,
   parseMessagePayload,
-  removeValue
+  removeValue,
+  generateUUID
 } = require("shared/functions");
 
 module.exports = serverState => {
@@ -58,6 +59,7 @@ module.exports = serverState => {
     }
 
     if (action === "REQUESTTICKET" && data.server === UUID) {
+      const browser_id = data.sender;
       const deferralOffer = deferralReference(null);
       const deferralIceCandidates = deferralReference([]).use(({ finish }) => {
         setTimeout(finish, 2500);
@@ -95,16 +97,21 @@ module.exports = serverState => {
 
       const broadcaster = Object.defineProperties(
         {
-          type: "monitor",
-          order: null,
-          connected_at: null
+          type: "browser",
+          device_id: browser_id,
+          browser_id,
+          connection_id: connectorsOrder++,
+          connected_at: null,
+          handshake: false, // 양측이 상대 연결 정보를 취득한 상태
+          connected: false, // 정상적으로 연결이 된 상태
+          meta: {},
         },
         {
           send: {
             enumerable: false,
             configurable: false,
             value: data => {
-              dc.send(data);
+              broadcaster.connected && dc.send(data);
             }
           }
         }
@@ -120,9 +127,8 @@ module.exports = serverState => {
       const dc = pc.createDataChannel("raspi-iot-data", { reliable: false });
 
       dc.onopen = function() {
-        broadcaster.order = connectorsOrder++;
+        broadcaster.connected = true;
         broadcaster.connected_at = Date.now();
-        connectors.push(broadcaster);
         serverState.event.emit("shouldBroadcastAllDevices");
       };
 
@@ -133,14 +139,21 @@ module.exports = serverState => {
         }
       };
 
-      const ticket = ticketBox.ticket(function({ answer, candidates }) {
+      const ticket = ticketBox.ticket(function({ answer, candidates, meta }) {
         const answerData = JSON.parse(decode64(answer));
         const candidatesData = JSON.parse(decode64(candidates));
         candidatesData.forEach(candidate => {
           pc.addIceCandidate(candidate);
         });
         pc.setRemoteDescription(answerData);
+        //
+        broadcaster.handshake = true;
+        broadcaster.meta = meta;
+        serverState.event.emit("shouldBroadcastAllDevices");
       });
+
+      connectors.push(broadcaster);
+      serverState.event.emit("shouldBroadcastAllDevices");
 
       await Promise.all([
         deferralOffer.promise,
