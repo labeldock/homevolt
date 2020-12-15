@@ -47,7 +47,6 @@ export default defineComponent({
           return localUUID
         }
         const newUUID = generateUUID();
-        console.log("newUUID", newUUID)
         setLocal("PEER_UUID", newUUID)
         return newUUID
       })()
