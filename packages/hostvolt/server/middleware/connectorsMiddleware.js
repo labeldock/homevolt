@@ -11,11 +11,13 @@ let connectorsOrder = 0;
 const {
   encode64,
   decode64,
-  deferralReference,
   parseMessagePayload,
-  removeValue,
-  generateUUID
+  removeValue
 } = require("shared/functions");
+
+const {
+  deferralReference,
+} = require("shared/promise")
 
 module.exports = serverState => {
   const router = Router();

@@ -142,86 +142,6 @@ function decode64 (encodedText=""){
   return Buffer.from(encodedText, 'base64').toString()
 }
 
-function deferral() {
-  var resolve, reject
-  var promise = new Promise(function() {
-    resolve = arguments[0]
-    reject = arguments[1]
-  })
-  return {
-    resolve: resolve,
-    reject: reject,
-    promise: promise,
-  }
-}
-
-function deferralReference (value){
-  const { resolve:bootResolve, reject:bootReject, promise: boot } = deferral()
-  let deferralEvents = {fullfill:[]};
-  let fullfillDeferral = false;
-
-  function resolve (value){
-    if(fullfillDeferral === true) return
-    deferralEvents.fullfill
-    fullfillDeferral = true
-    deferralEvents.fullfill.forEach((fn)=>fn());
-    deferralEvents = null;
-    bootResolve(value)
-  }
-
-  function reject (error){
-    if(fullfillDeferral === true) return
-    fullfillDeferral = true
-    deferralEvents.fullfill.forEach((fn)=>fn());
-    deferralEvents = null;
-    bootReject(error)
-  }
-
-  const promise = new Promise((resolve, reject) => {
-    boot.then((deferralResult) => {
-      resolve(deferralResult)
-    }).catch(reject)
-  })
-
-  async function finish (fn){
-    let result = deferralObject.value;
-    if(typeof fn === "function"){
-      try {
-        result = await fn(result)
-      } catch(error){
-        reject(error)
-      }
-    }
-    resolve(result)
-    return boot
-  }
-
-  function use (fn){
-    function onBeforeFullfill (fn){
-      typeof fn === "function" && deferralEvents.fullfill.push(fn)
-    }
-    if(typeof fn === "function"){
-      try {
-        fn({ onBeforeFullfill, finish, resolve, reject })
-      } catch(error){
-        reject(error)
-      }
-    }
-    return deferralObject
-  }
-
-  const deferralObject = {
-    resolve,
-    reject,
-    promise,
-    value,
-    finish,
-    use,
-  }
-
-  return deferralObject
-}
-
 function parseMessagePayload (msg){
   try {
     return JSON.parse(msg)
@@ -258,7 +178,5 @@ module.exports = {
   generateUUID,
   encode64,
   decode64,
-  deferral,
-  deferralReference,
   parseMessagePayload,
 }
