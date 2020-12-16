@@ -7,6 +7,10 @@
   "scripts": {
     "install:host": "cd packages/hostvolt && yarn install",
     "install:peer": "cd packages/peervolt && yarn install",
+    "start:host": "cd packages/hostvolt && yarn start",
+    "start:peer": "cd packages/peervolt && yarn start",
+    "server:host": "cd packages/hostvolt && yarn server",
+    "server:peer": "cd packages/peervolt && yarn server",
     "postinstall": "yarn install:host && yarn install:peer",
     "test": "See `npm help init` for definitive documentation on these fields"
   },
